@@ -1,0 +1,339 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String             @id @default(uuid())
+  email                    String             @unique
+  passwordHash             String
+  name                     String
+  dateOfBirth              DateTime?
+  createdAt                DateTime           @default(now())
+  isBetaAllAccess          Boolean            @default(true)
+  earlyBirdClaimedAt       DateTime?
+  earlyBirdDiscountPercent Int?
+  earlyBirdCanceledAt      DateTime?
+  proTrialRequestedAt      DateTime?
+  proTrialDurationDays     Int?
+  proYearRewardQualifiedAt DateTime?
+  portfolios               Portfolio[]
+  uploadedFiles            UploadedFile[]
+  fireGoals                FireGoal[]
+  journalEntries           JournalEntry[]
+  chatSessions             ChatSession[]
+  createdFamilyGroups      FamilyGroup[]      @relation("FamilyCreator")
+  familyMemberships        FamilyMember[]
+  brokerConnections        BrokerConnection[]
+  cryptoWallets            CryptoWallet[]
+  subscription             Subscription?
+  donations                Donation[]
+
+  @@index([email])
+}
+
+model Portfolio {
+  id               String                  @id @default(uuid())
+  userId           String
+  familyGroupId    String?
+  name             String
+  baseCurrency     String                  @default("THB")
+  createdAt        DateTime                @default(now())
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyGroup      FamilyGroup?            @relation(fields: [familyGroupId], references: [id], onDelete: SetNull)
+  transactions     Transaction[]
+  dividends        Dividend[]
+  multiAssetTransactions MultiAssetTransactionRecord[]
+  uploadedFiles    UploadedFile[]
+  journalEntries   JournalEntry[]
+  goldTransactions GoldTransactionRecord[]
+  cryptoWallets    CryptoWallet[]
+
+  @@index([userId])
+  @@index([familyGroupId])
+}
+
+model Transaction {
+  id               String    @id @default(uuid())
+  portfolioId      String
+  date             String
+  symbol           String
+  type             String // 'BUY' | 'SELL'
+  exchange         String    @default("BITKUB")
+  sourceConnector  String? // 'BITKUB' | 'DIME' | 'STREAMING' for precise Right-to-be-Forgotten purging
+  qty              Float
+  price            Float
+  gross            String
+  comm             String
+  vat              String
+  net              String
+  originalCurrency String
+  fxRate           String?
+  netTHB           String?
+  portfolio        Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, date])
+  @@index([portfolioId, symbol])
+}
+
+model MultiAssetTransactionRecord {
+  id          String    @id
+  portfolioId String
+  date        String
+  assetClass  String
+  type        String
+  symbol      String
+  payload     String // Canonical CDM JSON; decimal financial values remain strings.
+  createdAt   DateTime  @default(now())
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, date])
+  @@index([portfolioId, assetClass])
+  @@index([portfolioId, symbol])
+  @@map("multi_asset_transactions")
+}
+
+model Dividend {
+  id               String    @id @default(uuid())
+  portfolioId      String
+  date             String
+  symbol           String
+  qty              Float
+  divPerShare      String
+  gross            String
+  whtRate          Float
+  wht              String
+  net              String
+  originalCurrency String
+  sourceConnector  String? // 'DIME' | 'STREAMING' for precise Right-to-be-Forgotten purging
+  fxRate           String?
+  grossTHB         String?
+  whtTHB           String?
+  netTHB           String?
+  portfolio        Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, date])
+}
+
+model UploadedFile {
+  id          String    @id @default(uuid())
+  userId      String
+  portfolioId String
+  filename    String
+  type        String // 'CSV' | 'PDF'
+  path        String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([portfolioId])
+}
+
+model FireGoal {
+  id                  String   @id @default(uuid())
+  userId              String
+  name                String
+  targetAmount        String
+  currentAmount       String
+  monthlyContribution String
+  expectedReturn      String
+  inflationRate       String
+  targetYear          Int
+  currentAge          Int
+  retirementAge       Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model JournalEntry {
+  id          String     @id @default(uuid())
+  userId      String
+  portfolioId String?
+  date        String // ISO Date 'YYYY-MM-DD'
+  title       String
+  content     String
+  mood        String // 'BULLISH' | 'BEARISH' | 'NEUTRAL'
+  createdAt   DateTime   @default(now())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio   Portfolio? @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@index([portfolioId])
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  userId    String
+  messages  String   @default("[]") // JSON serialized ChatMessage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model FamilyGroup {
+  id              String         @id @default(uuid())
+  name            String
+  createdByUserId String
+  inviteCode      String         @unique
+  createdAt       DateTime       @default(now())
+  createdBy       User           @relation("FamilyCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  members         FamilyMember[]
+  portfolios      Portfolio[]
+
+  @@index([createdByUserId])
+}
+
+model FamilyMember {
+  id            String      @id @default(uuid())
+  familyGroupId String
+  userId        String
+  role          String // 'OWNER' | 'VIEWER'
+  permissions   String      @default("{\"canSeeTransactions\":false,\"canSeeTotalNetWorth\":true}") // JSON serialized
+  createdAt     DateTime    @default(now())
+  familyGroup   FamilyGroup @relation(fields: [familyGroupId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([familyGroupId, userId])
+  @@index([userId])
+}
+
+model BrokerConnection {
+  id                      String    @id @default(uuid())
+  userId                  String
+  portfolioId             String?
+  brokerName              String    @default("IBKR") // 'IBKR' | 'BITKUB' | 'DIME' | 'STREAMING'
+  flexQueryTokenEncrypted String
+  flexQueryId             String
+  connectionMode          String    @default("READ_ONLY_API") // 'READ_ONLY_API' | 'OPEN_API_HYBRID' | 'SECURE_STATEMENT_AUTOMATION'
+  dataSource              String? // 'NOT_TESTED' | 'SANDBOX_MOCK' | 'LIVE_PARTNER_API'
+  pdpaConsentedAt         DateTime?
+  pdpaConsentVersion      String?
+  status                  String    @default("CONNECTED") // 'CONNECTED' | 'SYNCING' | 'ERROR' | 'DISCONNECTED'
+  lastSyncedAt            DateTime?
+  createdAt               DateTime  @default(now())
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, brokerName])
+  @@index([userId])
+}
+
+model GoldTransactionRecord {
+  id               String                        @id @default(uuid())
+  portfolioId      String
+  date             String // ISO 8601 ('YYYY-MM-DD' or full ISO)
+  symbol           String // e.g., 'GOLD965', 'GOLD9999', 'XAUUSD', 'GOZ26'
+  assetSubclass    String // 'PHYSICAL_GOLD' | 'GOLD_ONLINE_FUTURES' | 'XAU_SPOT'
+  weight           String // Decimal string
+  weightUnit       String // 'THAI_BAHT' | 'GRAM' | 'TROY_OUNCE'
+  purity           String // '96.5' | '99.99' | '99.9' | '99.5'
+  spotPricePerUnit String // Decimal string
+  premiumPerUnit   String // Decimal string
+  commission       String // Decimal string
+  totalCost        String // Decimal string
+  fxRateAtPurchase String // Decimal string
+  type             String // 'BUY' | 'SELL'
+  createdAt        DateTime                      @default(now())
+  portfolio        Portfolio                     @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  derivativesExt   DerivativesContractExtension?
+
+  @@index([portfolioId, date])
+  @@index([portfolioId, symbol])
+  @@map("gold_transactions")
+}
+
+model DerivativesContractExtension {
+  id              String                @id @default(uuid())
+  transactionId   String                @unique
+  contractMonth   String // e.g., 'V26', 'Z26', 'H27'
+  expirationDate  String // ISO YYYY-MM-DD
+  legAction       String                @default("OPEN_LONG") // 'OPEN_LONG' | 'CLOSE_LONG' | 'OPEN_SHORT' | 'CLOSE_SHORT'
+  isRollover      Boolean               @default(false)
+  rolloverGroupId String? // UUID linking Close Leg & Open Leg of an atomic rollover
+  rolloverSpread  String? // Decimal string (Back-Month Price - Front-Month Price)
+  rolloverFee     String? // Decimal string (Separate Rollover Fee for cost transparency)
+  createdAt       DateTime              @default(now())
+  goldTransaction GoldTransactionRecord @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([rolloverGroupId])
+  @@index([expirationDate])
+  @@map("derivatives_contract_extensions")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String // 'CREATE' | 'UPDATE' | 'DELETE' | 'SYNC_ONCHAIN'
+  entityType  String // 'GOLD_TRANSACTION' | 'PORTFOLIO' | 'CRYPTO_WALLET'
+  entityId    String
+  beforeState String? // JSON String
+  afterState  String? // JSON String
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+model CryptoWallet {
+  id            String     @id @default(uuid())
+  userId        String
+  portfolioId   String?
+  chain         String // 'EVM' | 'SOLANA' | 'BTC'
+  address       String // AES-256-GCM encrypted public address (NEVER plaintext, NO PRIVATE KEYS)
+  addressHash   String // Deterministic SHA-256 hash (`chain:canonicalAddress`) for privacy-first uniqueness
+  addressMasked String // Masked public preview (e.g., '0x71C7...976F')
+  label         String? // Optional wallet nickname (e.g., 'Ledger Vault')
+  isActive      Boolean    @default(true)
+  lastSyncedAt  DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio     Portfolio? @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, chain, addressHash])
+  @@index([userId])
+  @@index([portfolioId])
+  @@map("crypto_wallets")
+}
+
+// Billing models are intentionally isolated from FIFO, tax, and portfolio Core Types.
+model Subscription {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  tier             String    @default("FREE") // 'FREE' | 'PRO' | 'FAMILY' | 'ADVISOR'
+  status           String    @default("BETA_ALL_ACCESS") // 'ACTIVE' | 'CANCELED' | 'BETA_ALL_ACCESS'
+  stripeCustomerId String?   @unique
+  currentPeriodEnd DateTime?
+  isBetaAllAccess  Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model Donation {
+  id              String   @id @default(uuid())
+  userId          String
+  amountTHB       String // Decimal.js precision 40; persist as a canonical decimal string.
+  currency        String   @default("THB")
+  stripePaymentId String?  @unique
+  status          String   @default("PENDING") // 'PENDING' | 'SUCCEEDED' | 'FAILED'
+  message         String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}

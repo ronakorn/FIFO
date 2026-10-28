@@ -1,0 +1,2512 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "FIFO Wealth OS - Backend API",
+    "version": "1.0.0",
+    "description": "Production-grade Multi-User, Multi-Portfolio REST API powered by Core FIFO Engine, Historical FX Rate Engine (THB), and Thai Revenue Department Tax Compliance Engine."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Relative API Server (Works across Live Preview & Localhost)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "name",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "required": [
+          "user",
+          "token"
+        ],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "token": {
+            "type": "string",
+            "description": "Signed JWT Bearer Token"
+          }
+        }
+      },
+      "Portfolio": {
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "name",
+          "baseCurrency",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Global Tech & Crypto"
+          },
+          "baseCurrency": {
+            "type": "string",
+            "example": "THB"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "required": [
+          "id",
+          "portfolioId",
+          "date",
+          "symbol",
+          "type",
+          "qty",
+          "price",
+          "gross",
+          "comm",
+          "vat",
+          "net",
+          "originalCurrency"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "portfolioId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "AAPL"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL"
+            ]
+          },
+          "qty": {
+            "type": "number",
+            "example": 10
+          },
+          "price": {
+            "type": "number",
+            "example": 150.5
+          },
+          "gross": {
+            "type": "string",
+            "example": "1505.00"
+          },
+          "comm": {
+            "type": "string",
+            "example": "1.00"
+          },
+          "vat": {
+            "type": "string",
+            "example": "0.00"
+          },
+          "net": {
+            "type": "string",
+            "example": "1506.00"
+          },
+          "originalCurrency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "fxRate": {
+            "type": "string",
+            "nullable": true,
+            "example": "36.75"
+          },
+          "netTHB": {
+            "type": "string",
+            "nullable": true,
+            "example": "55345.50"
+          }
+        }
+      },
+      "MultiAssetTransactionInput": {
+        "type": "object",
+        "description": "Canonical CDM transaction. Financial values are decimal strings; include only the extension matching assetClass.",
+        "required": [
+          "date",
+          "symbol",
+          "assetClass",
+          "type",
+          "qty",
+          "price",
+          "gross",
+          "comm",
+          "vat",
+          "net",
+          "originalCurrency",
+          "originalNet",
+          "fxRate",
+          "netTHB"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-01"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "BOND-TH-2028"
+          },
+          "assetClass": {
+            "type": "string",
+            "enum": [
+              "BOND",
+              "FUND",
+              "COMMODITY",
+              "FOREX"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL",
+              "DIVIDEND",
+              "COUPON",
+              "INTEREST",
+              "CONVERT"
+            ]
+          },
+          "qty": {
+            "type": "number",
+            "example": 10
+          },
+          "price": {
+            "type": "string",
+            "example": "1000.00000000"
+          },
+          "gross": {
+            "type": "string",
+            "example": "10000.00"
+          },
+          "comm": {
+            "type": "string",
+            "example": "0.00"
+          },
+          "vat": {
+            "type": "string",
+            "example": "0.00"
+          },
+          "net": {
+            "type": "string",
+            "example": "10000.00"
+          },
+          "originalCurrency": {
+            "type": "string",
+            "example": "THB"
+          },
+          "originalNet": {
+            "type": "string",
+            "example": "10000.00"
+          },
+          "fxRate": {
+            "type": "string",
+            "nullable": true,
+            "example": "1.00000000"
+          },
+          "netTHB": {
+            "type": "string",
+            "nullable": true,
+            "example": "10000.00"
+          },
+          "exchange": {
+            "type": "string",
+            "example": "OTC"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "bondExtension": {
+            "type": "object",
+            "example": {
+              "couponRate": "0.05",
+              "paymentFrequency": "SEMI_ANNUAL",
+              "maturityDate": "2028-10-01",
+              "faceValue": "1000.00",
+              "accruedInterest": "0.00"
+            }
+          },
+          "fundExtension": {
+            "type": "object",
+            "description": "Fund type, holding period, tax-deductible flag, dividend policy and NAV."
+          },
+          "commodityExtension": {
+            "type": "object",
+            "description": "Weight, unit, purity, storage fee, premium and spot price."
+          },
+          "forexExtension": {
+            "type": "object",
+            "description": "From/to currencies, transaction FX rate, and derived FIFO values."
+          }
+        },
+        "additionalProperties": false
+      },
+      "TaxEvent": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "date",
+          "symbol",
+          "amountTHB",
+          "taxableIncome",
+          "taxWithheld",
+          "netTaxPayable"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CAPITAL_GAIN",
+              "DIVIDEND"
+            ]
+          },
+          "date": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "amountTHB": {
+            "type": "string"
+          },
+          "taxableIncome": {
+            "type": "string"
+          },
+          "taxWithheld": {
+            "type": "string"
+          },
+          "netTaxPayable": {
+            "type": "string"
+          }
+        }
+      },
+      "TaxReport": {
+        "type": "object",
+        "required": [
+          "taxYear",
+          "totalTaxableIncome",
+          "totalTaxWithheld",
+          "totalTaxPayable",
+          "capitalGains",
+          "dividends"
+        ],
+        "properties": {
+          "taxYear": {
+            "type": "integer",
+            "example": 2024
+          },
+          "totalTaxableIncome": {
+            "type": "string",
+            "example": "28.07"
+          },
+          "totalTaxWithheld": {
+            "type": "string",
+            "example": "0.93"
+          },
+          "totalTaxPayable": {
+            "type": "string",
+            "example": "-0.93"
+          },
+          "capitalGains": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxEvent"
+            }
+          },
+          "dividends": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxEvent"
+            }
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/advanced-assets/options/pricing": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Price a European option and calculate Black-Scholes Greeks.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "underlyingPrice",
+                  "strikePrice",
+                  "timeToExpiry",
+                  "riskFreeRate",
+                  "volatility",
+                  "optionType"
+                ],
+                "properties": {
+                  "underlyingPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "strikePrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "timeToExpiry": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "riskFreeRate": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "volatility": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "optionType": {
+                    "type": "string",
+                    "enum": [
+                      "CALL",
+                      "PUT"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/options/implied-volatility": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Solve implied volatility from a market option price.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "marketPrice",
+                  "underlyingPrice",
+                  "strikePrice",
+                  "timeToExpiry",
+                  "riskFreeRate",
+                  "optionType"
+                ],
+                "properties": {
+                  "marketPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "underlyingPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "strikePrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "timeToExpiry": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "riskFreeRate": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "optionType": {
+                    "type": "string",
+                    "enum": [
+                      "CALL",
+                      "PUT"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/options/payoff": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Calculate net expiration payoff for a long option position.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "optionType",
+                  "strikePrice",
+                  "underlyingPriceAtExpiry",
+                  "premium",
+                  "contractSize"
+                ],
+                "properties": {
+                  "optionType": {
+                    "type": "string",
+                    "enum": [
+                      "CALL",
+                      "PUT"
+                    ]
+                  },
+                  "strikePrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "underlyingPriceAtExpiry": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "premium": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "contractSize": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 100
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/options/chain": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Build an illustrative AAPL or SPY options chain from Decimal Black-Scholes prices and Greeks; quotes are not live.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "symbol"
+                ],
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "enum": [
+                      "AAPL",
+                      "SPY"
+                    ]
+                  },
+                  "asOfDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-10-27"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/reits/valuation": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Calculate REIT premium/discount, distribution yield and FFO/AFFO metrics.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "navPerUnit",
+                  "marketPrice",
+                  "annualDistributionPerUnit",
+                  "ffoPerUnit"
+                ],
+                "properties": {
+                  "navPerUnit": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "marketPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "annualDistributionPerUnit": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "ffoPerUnit": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "maintenanceCapexPerUnit": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/reits/distribution-schedule": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Estimate annual and per-period REIT distributions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "annualDistributionPerUnit",
+                  "frequency",
+                  "unitsHeld"
+                ],
+                "properties": {
+                  "annualDistributionPerUnit": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "frequency": {
+                    "type": "string",
+                    "enum": [
+                      "MONTHLY",
+                      "QUARTERLY",
+                      "SEMI_ANNUAL",
+                      "ANNUAL"
+                    ]
+                  },
+                  "unitsHeld": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "example": "1000"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/private-equity/irr": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Calculate annualized XIRR for dated private-equity cash flows.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cashFlows"
+                ],
+                "properties": {
+                  "cashFlows": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "date",
+                        "amount",
+                        "type"
+                      ],
+                      "properties": {
+                        "date": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "amount": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "CALL",
+                            "DISTRIBUTION",
+                            "FEE",
+                            "WRITE_OFF"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/private-equity/metrics": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Calculate TVPI, DPI, RVPI, MOIC and optional dated-cash-flow IRR.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "committedCapital",
+                  "calledCapital",
+                  "investedCapital",
+                  "distributedCapital",
+                  "residualValue"
+                ],
+                "properties": {
+                  "committedCapital": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "calledCapital": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "investedCapital": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "distributedCapital": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "residualValue": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/private-equity/j-curve": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Generate cumulative dated cash-flow points for a private-equity J-curve.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cashFlows"
+                ],
+                "properties": {
+                  "cashFlows": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "date",
+                        "amount",
+                        "type"
+                      ],
+                      "properties": {
+                        "date": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "amount": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "CALL",
+                            "DISTRIBUTION",
+                            "FEE",
+                            "WRITE_OFF"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/futures/margin-health": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Calculate account equity, margin level and risk status for Futures positions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "positions",
+                  "accountBalance"
+                ],
+                "properties": {
+                  "positions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "symbol",
+                        "side",
+                        "qty",
+                        "entryPrice",
+                        "markPrice",
+                        "contractSize",
+                        "multiplier",
+                        "initialMargin",
+                        "maintenanceMargin"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "symbol": {
+                          "type": "string"
+                        },
+                        "side": {
+                          "type": "string",
+                          "enum": [
+                            "LONG",
+                            "SHORT"
+                          ]
+                        },
+                        "qty": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "entryPrice": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        },
+                        "markPrice": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        },
+                        "contractSize": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "multiplier": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        },
+                        "initialMargin": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        },
+                        "maintenanceMargin": {
+                          "type": "string",
+                          "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                          "example": "100.0000"
+                        }
+                      }
+                    }
+                  },
+                  "accountBalance": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/futures/mark-to-market": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Calculate Futures unrealized mark-to-market P/L.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "side",
+                  "qty",
+                  "entryPrice",
+                  "markPrice",
+                  "contractSize",
+                  "multiplier"
+                ],
+                "properties": {
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "LONG",
+                      "SHORT"
+                    ]
+                  },
+                  "qty": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "entryPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "markPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "contractSize": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "multiplier": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/advanced-assets/futures/liquidation-price": {
+      "post": {
+        "tags": [
+          "Advanced Assets"
+        ],
+        "summary": "Estimate a linear Futures maintenance-margin liquidation level.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "side",
+                  "entryPrice",
+                  "initialMarginPerContract",
+                  "maintenanceMarginPerContract",
+                  "multiplier",
+                  "qty"
+                ],
+                "properties": {
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "LONG",
+                      "SHORT"
+                    ]
+                  },
+                  "entryPrice": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "initialMarginPerContract": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "maintenanceMarginPerContract": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "multiplier": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$",
+                    "example": "100.0000"
+                  },
+                  "qty": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "contractSize": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "default": 1
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calculated result."
+          },
+          "400": {
+            "description": "Request validation or calculation error."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "สมัครสมาชิกใหม่ (Register user & issue JWT)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password",
+                  "name"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "investor@wealthos.th"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "SecurePass123!"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "คุณสมชาย นักลงทุน"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "เข้าสู่ระบบ (Authenticate & return JWT)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "investor@wealthos.th"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "SecurePass123!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "ข้อมูลผู้ใช้ปัจจุบัน (Current user profile)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/portfolios": {
+      "get": {
+        "tags": [
+          "Portfolio Management"
+        ],
+        "summary": "รายการพอร์ตทั้งหมดของผู้ใช้ (List portfolios)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of Portfolios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Portfolio"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Portfolio Management"
+        ],
+        "summary": "สร้างพอร์ตใหม่ (Create portfolio)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "US Equities & Crypto Portfolio"
+                  },
+                  "baseCurrency": {
+                    "type": "string",
+                    "default": "THB",
+                    "example": "THB"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created Portfolio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Portfolio"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/portfolios/{id}": {
+      "get": {
+        "tags": [
+          "Portfolio Management"
+        ],
+        "summary": "รายละเอียดพอร์ต (Get portfolio detail)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Portfolio"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Portfolio Management"
+        ],
+        "summary": "ลบพอร์ต (Delete portfolio)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted confirmation"
+          }
+        }
+      }
+    },
+    "/api/multi-assets/portfolios/{portfolioId}": {
+      "get": {
+        "tags": [
+          "Multi-Asset Foundation"
+        ],
+        "summary": "Get portfolio Multi-Asset transactions and calculated dashboards",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portfolioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asOfDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "taxYear",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "example": 2026
+            }
+          },
+          {
+            "name": "annualIncomeTHB",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "example": "1200000.00"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CDM transactions and bond, fund, commodity and forex summaries"
+          },
+          "403": {
+            "description": "Portfolio is not owned by the authenticated user"
+          }
+        }
+      }
+    },
+    "/api/multi-assets/portfolios/{portfolioId}/transactions": {
+      "post": {
+        "tags": [
+          "Multi-Asset Foundation"
+        ],
+        "summary": "Create and validate a CDM multi-asset transaction",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portfolioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultiAssetTransactionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Persisted canonical transaction with derived FIFO FX values"
+          },
+          "400": {
+            "description": "Invalid CDM data or ledger integrity violation"
+          },
+          "403": {
+            "description": "Portfolio is not owned by the authenticated user"
+          }
+        }
+      }
+    },
+    "/api/multi-assets/portfolios/{portfolioId}/transactions/{transactionId}": {
+      "delete": {
+        "tags": [
+          "Multi-Asset Foundation"
+        ],
+        "summary": "Delete a transaction and revalidate the remaining ledger",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portfolioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "transactionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted transaction confirmation"
+          },
+          "400": {
+            "description": "Deletion would leave an invalid ledger"
+          },
+          "403": {
+            "description": "Portfolio is not owned by the authenticated user"
+          },
+          "404": {
+            "description": "Transaction not found in this portfolio"
+          }
+        }
+      }
+    },
+    "/api/upload/csv": {
+      "post": {
+        "tags": [
+          "File Upload & Processing"
+        ],
+        "summary": "อัปโหลด CSV ธุรกรรม (Bitkub / IBKR) พร้อมคำนวณ FX & FIFO อัตโนมัติ",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "portfolioId",
+                  "exchange"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "portfolioId": {
+                    "type": "string"
+                  },
+                  "exchange": {
+                    "type": "string",
+                    "enum": [
+                      "BITKUB",
+                      "IBKR"
+                    ]
+                  },
+                  "vatRate": {
+                    "type": "number",
+                    "description": "Optional VAT rate (e.g. 0.07)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parsed & Enriched Transactions + FIFO Summary"
+          }
+        }
+      }
+    },
+    "/api/transactions/{portfolioId}": {
+      "get": {
+        "tags": [
+          "File Upload & Processing"
+        ],
+        "summary": "รายการธุรกรรมในพอร์ต (List portfolio transactions)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portfolioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BUY",
+                "SELL"
+              ]
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/upload/dividends": {
+      "post": {
+        "tags": [
+          "File Upload & Processing"
+        ],
+        "summary": "อัปโหลด CSV เงินปันผล (Upload & FX-enrich Dividends)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "portfolioId"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "portfolioId": {
+                    "type": "string"
+                  },
+                  "defaultCurrency": {
+                    "type": "string",
+                    "example": "THB"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parsed & Enriched Dividends"
+          }
+        }
+      }
+    },
+    "/api/upload/bloomberg-trades": {
+      "post": {
+        "tags": [
+          "Bloomberg File Import"
+        ],
+        "summary": "Import a user-exported Bloomberg trade CSV or Excel .xlsx file into the existing Multi-Asset CDM",
+        "description": "This is file import only, not a direct or official Bloomberg Terminal connection. Foreign-currency rows require an explicit FX Rate to THB. Corporate actions are not applied and Futures are rejected because the protected CDM has no Futures type.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "portfolioId"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "CSV or Excel .xlsx; legacy .xls is not supported."
+                  },
+                  "portfolioId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parsed, idempotently persisted CDM trades"
+          },
+          "400": {
+            "description": "Invalid Bloomberg data, missing FX rate, or invalid ledger"
+          },
+          "403": {
+            "description": "Portfolio is not owned by the authenticated user"
+          }
+        }
+      }
+    },
+    "/api/upload/bloomberg-corporate-actions": {
+      "post": {
+        "tags": [
+          "Bloomberg File Import"
+        ],
+        "summary": "Preview parsed Bloomberg corporate actions",
+        "description": "Corporate actions are preview-only and are not stored or applied to portfolio lots.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "CSV or Excel .xlsx."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parsed corporate-action review list"
+          },
+          "400": {
+            "description": "Invalid file or action data"
+          }
+        }
+      }
+    },
+    "/api/bloomberg/tickers/parse": {
+      "post": {
+        "tags": [
+          "Bloomberg File Import"
+        ],
+        "summary": "Parse a Bloomberg yellow-key ticker",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "ticker"
+                ],
+                "properties": {
+                  "ticker": {
+                    "type": "string",
+                    "example": "AAPL US Equity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parsed Bloomberg ticker fields"
+          },
+          "400": {
+            "description": "Invalid Bloomberg ticker"
+          }
+        }
+      }
+    },
+    "/api/connect/bloomberg-port": {
+      "post": {
+        "tags": [
+          "Bloomberg Port"
+        ],
+        "summary": "Check the Bloomberg Port adapter sandbox stub",
+        "description": "SANDBOX returns an explicit empty mock response. LIVE is disabled; no Bloomberg API contract or credentials are configured.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "portfolioId"
+                ],
+                "properties": {
+                  "portfolioId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "environment": {
+                    "type": "string",
+                    "enum": [
+                      "SANDBOX",
+                      "LIVE"
+                    ],
+                    "default": "SANDBOX"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Explicit sandbox mock status"
+          },
+          "501": {
+            "description": "Live adapter not configured"
+          }
+        }
+      }
+    },
+    "/api/tax/summary/{portfolioId}/{year}": {
+      "get": {
+        "tags": [
+          "Tax & Reports"
+        ],
+        "summary": "สรุปภาษีประจำปี (Thai Tax Compliance JSON Summary)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portfolioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 2024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TaxReport summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxReport"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tax/report/{portfolioId}/{year}": {
+      "get": {
+        "tags": [
+          "Tax & Reports"
+        ],
+        "summary": "ดาวน์โหลดรายงานภาษี PDF 5 หน้า (Download PDF Tax Report)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "portfolioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 2024
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF Tax Report File",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/donate/create": {
+      "post": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Create a one-time support donation Checkout session",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amountTHB"
+                ],
+                "properties": {
+                  "amountTHB": {
+                    "type": "string",
+                    "example": "500.00",
+                    "description": "THB decimal string; maximum two decimal places."
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 280
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pending donation and Checkout session created."
+          },
+          "400": {
+            "description": "Invalid donation amount or Checkout request."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/billing/portal": {
+      "post": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Create a Stripe Customer Portal session (mock in Open Beta)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer Portal session created."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/billing/pricing": {
+      "get": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Get public THB subscription pricing and Early-Bird terms without starting checkout",
+        "responses": {
+          "200": {
+            "description": "Pricing catalog and explicit charge-disabled state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "openBeta",
+                    "chargesEnabled",
+                    "pricing"
+                  ],
+                  "properties": {
+                    "openBeta": {
+                      "type": "boolean"
+                    },
+                    "chargesEnabled": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "pricing": {
+                      "type": "object",
+                      "description": "Tier prices in THB, entitlement maps, and Early-Bird policy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/billing/community": {
+      "get": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Get community fundraising total from the approved baseline plus succeeded donations",
+        "responses": {
+          "200": {
+            "description": "Fundraising baseline, successful database donations, total, target, and progress."
+          }
+        }
+      }
+    },
+    "/api/billing/early-bird/status": {
+      "get": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Get personalized Early-Bird, donor Pro-year reward, and trial-reservation status",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Early-Bird claim state, successful donation progress, and no-charge deferred trial reservation state."
+          },
+          "401": {
+            "description": "Authentication required."
+          }
+        }
+      }
+    },
+    "/api/billing/early-bird/claim": {
+      "post": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Claim the one-time 30% Early-Bird discount as a Beta User",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The existing claim state is returned idempotently."
+          },
+          "201": {
+            "description": "Claim saved to the authenticated User; no checkout or charge created."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Only Beta Users may claim."
+          },
+          "410": {
+            "description": "The Early-Bird claim window has ended."
+          }
+        }
+      }
+    },
+    "/api/billing/trial/reserve": {
+      "post": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Reserve a 14-day Pro trial to start when subscriptions launch",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Existing reservation returned idempotently."
+          },
+          "201": {
+            "description": "Trial reservation stored; chargesEnabled is false."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "409": {
+            "description": "An active paid subscription already exists."
+          }
+        }
+      }
+    },
+    "/api/billing/status": {
+      "get": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Read the current plan and Open Beta entitlement",
+        "responses": {
+          "200": {
+            "description": "Open Beta returns BETA_ALL_ACCESS for every visitor; post-beta requires a JWT.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "tier",
+                    "status",
+                    "isBetaAllAccess",
+                    "access",
+                    "entitlements",
+                    "pricing",
+                    "chargesEnabled"
+                  ],
+                  "properties": {
+                    "planName": {
+                      "type": "string"
+                    },
+                    "tier": {
+                      "type": "string",
+                      "enum": [
+                        "FREE",
+                        "PRO",
+                        "FAMILY",
+                        "ADVISOR"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVE",
+                        "CANCELED",
+                        "BETA_ALL_ACCESS",
+                        "FREE"
+                      ]
+                    },
+                    "isBetaAllAccess": {
+                      "type": "boolean"
+                    },
+                    "currentPeriodEnd": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time"
+                    },
+                    "access": {
+                      "type": "string",
+                      "enum": [
+                        "ALL_FEATURES",
+                        "FREE_FEATURES",
+                        "PLAN_FEATURES"
+                      ]
+                    },
+                    "entitlements": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "integer"
+                          }
+                        ]
+                      }
+                    },
+                    "pricing": {
+                      "type": "object",
+                      "description": "Tier prices in THB plus Early-Bird pricing and lifetime terms."
+                    },
+                    "chargesEnabled": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/stripe": {
+      "post": {
+        "tags": [
+          "Billing & Support"
+        ],
+        "summary": "Receive a signed Stripe webhook event",
+        "parameters": [
+          {
+            "name": "Stripe-Signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook accepted and handled (or safely ignored)."
+          },
+          "400": {
+            "description": "Invalid signature or event payload."
+          }
+        }
+      }
+    }
+  }
+}

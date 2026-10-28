@@ -1,0 +1,60 @@
+name: fifo-wealth-os
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${API_BIND_ADDRESS:-0.0.0.0}:${API_HOST_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Prisma's SQLite URL is absolute because relative SQLite paths resolve from prisma/schema.prisma.
+      DATABASE_URL: file:/app/data/fifo_wealth_os.db
+      JWT_SECRET: ${JWT_SECRET:?Copy .env.example to .env and set a strong JWT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set a unique ENCRYPTION_KEY of at least 32 characters}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      OPEN_BETA_MODE: ${OPEN_BETA_MODE:-true}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-local-mock-stripe-webhook-secret}
+      STORAGE_DIR: /app/storage/uploads
+      REPORTS_STORAGE_DIR: /app/storage/reports
+    volumes:
+      - sqlite_data:/app/data
+      - fifo_uploads_data:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  frontend:
+    build:
+      context: ./fifo-wealth-os-web
+      dockerfile: Dockerfile
+      args:
+        BACKEND_ORIGIN: http://backend:3000
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${WEB_BIND_ADDRESS:-0.0.0.0}:${WEB_HOST_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      BACKEND_ORIGIN: http://backend:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  # Keep the historical Compose volume name so an existing SQLite volume is reused.
+  sqlite_data:
+    name: fifo-wealth-os_fifo_sqlite_data
+  fifo_uploads_data:

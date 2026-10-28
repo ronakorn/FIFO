@@ -1,0 +1,727 @@
+{
+  "info": {
+    "name": "FIFO Wealth OS - Backend REST API",
+    "description": "Complete Postman Collection for FIFO Wealth OS (Authentication, Multi-Portfolio, Multi-Asset, Bloomberg file mapping, advanced Options/REIT/Private Equity/Futures calculators, FX, Thai tax, reports and Open Beta billing).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "portfolioId",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"investor@wealthos.th\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"คุณสมชาย นักลงทุน\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"investor@wealthos.th\",\n  \"password\": \"SecurePass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User (/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Portfolio Management",
+      "item": [
+        {
+          "name": "List Portfolios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/portfolios"
+          }
+        },
+        {
+          "name": "Create Portfolio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/portfolios",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Global Equity & Crypto\",\n  \"baseCurrency\": \"THB\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Portfolio Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/portfolios/{{portfolioId}}"
+          }
+        },
+        {
+          "name": "Delete Portfolio",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/portfolios/{{portfolioId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Multi-Asset Foundation",
+      "item": [
+        {
+          "name": "Get Multi-Asset Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/multi-assets/portfolios/{{portfolioId}}?asOfDate=2026-10-27&taxYear=2026"
+          }
+        },
+        {
+          "name": "Create Bond Transaction (CDM)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/multi-assets/portfolios/{{portfolioId}}/transactions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-10-01\",\n  \"symbol\": \"BOND-TH-2028\",\n  \"assetClass\": \"BOND\",\n  \"type\": \"BUY\",\n  \"qty\": 10,\n  \"price\": \"1000.00\",\n  \"gross\": \"10000.00\",\n  \"comm\": \"0.00\",\n  \"vat\": \"0.00\",\n  \"net\": \"10000.00\",\n  \"originalCurrency\": \"THB\",\n  \"originalNet\": \"10000.00\",\n  \"fxRate\": \"1.00000000\",\n  \"netTHB\": \"10000.00\",\n  \"bondExtension\": {\n    \"couponRate\": \"0.05\",\n    \"paymentFrequency\": \"SEMI_ANNUAL\",\n    \"maturityDate\": \"2028-10-01\",\n    \"faceValue\": \"1000.00\",\n    \"accruedInterest\": \"0.00\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Multi-Asset Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/multi-assets/portfolios/{{portfolioId}}/transactions/{{transactionId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. File Upload & Transactions",
+      "item": [
+        {
+          "name": "Upload Trade CSV (Bitkub / IBKR)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/upload/csv",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "portfolioId",
+                  "value": "{{portfolioId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "exchange",
+                  "value": "IBKR",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Portfolio Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/transactions/{{portfolioId}}"
+          }
+        },
+        {
+          "name": "Upload Dividends CSV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/upload/dividends",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "portfolioId",
+                  "value": "{{portfolioId}}",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Tax & Reports",
+      "item": [
+        {
+          "name": "Get Annual Tax Summary (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tax/summary/{{portfolioId}}/2024"
+          }
+        },
+        {
+          "name": "Download Annual PDF Tax Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/tax/report/{{portfolioId}}/2024"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Billing & Support",
+      "item": [
+        {
+          "name": "Get Open Beta Billing Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/billing/status"
+          }
+        },
+        {
+          "name": "Get Subscription Pricing (No Checkout)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/billing/pricing"
+          }
+        },
+        {
+          "name": "Get Community Fundraising Goal",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/billing/community"
+          }
+        },
+        {
+          "name": "Get Early-Bird, Donor Reward & Trial Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/billing/early-bird/status"
+          }
+        },
+        {
+          "name": "Claim Early-Bird (No Checkout)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/billing/early-bird/claim"
+          }
+        },
+        {
+          "name": "Reserve 14-Day Pro Trial (No Charge)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/billing/trial/reserve"
+          }
+        },
+        {
+          "name": "Create Donation Checkout (Mock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountTHB\": \"500.00\",\n  \"message\": \"Thank you for supporting the project.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/donate/create"
+          }
+        },
+        {
+          "name": "Create Customer Portal (Mock)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/billing/portal"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Advanced Assets",
+      "item": [
+        {
+          "name": "Options — Price & Greeks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/options/pricing",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"underlyingPrice\": \"100\",\n  \"strikePrice\": \"100\",\n  \"timeToExpiry\": \"0.25\",\n  \"riskFreeRate\": \"0.05\",\n  \"volatility\": \"0.20\",\n  \"optionType\": \"CALL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Options — Implied Volatility",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/options/implied-volatility",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marketPrice\": \"4.6150\",\n  \"underlyingPrice\": \"100\",\n  \"strikePrice\": \"100\",\n  \"timeToExpiry\": \"0.25\",\n  \"riskFreeRate\": \"0.05\",\n  \"optionType\": \"CALL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Options — Expiry Payoff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/options/payoff",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"optionType\": \"CALL\",\n  \"strikePrice\": \"100\",\n  \"underlyingPriceAtExpiry\": \"120\",\n  \"premium\": \"5\",\n  \"contractSize\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Options — Illustrative Chain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/options/chain",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"AAPL\",\n  \"asOfDate\": \"2026-10-27\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "REITs — Valuation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/reits/valuation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"navPerUnit\": \"12\",\n  \"marketPrice\": \"10\",\n  \"annualDistributionPerUnit\": \"0.60\",\n  \"ffoPerUnit\": \"1.00\",\n  \"maintenanceCapexPerUnit\": \"0.10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "REITs — Distribution Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/reits/distribution-schedule",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"annualDistributionPerUnit\": \"0.65\",\n  \"frequency\": \"QUARTERLY\",\n  \"unitsHeld\": \"30000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Private Equity — IRR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/private-equity/irr",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashFlows\": [\n    {\n      \"date\": \"2020-01-01\",\n      \"amount\": \"-100\",\n      \"type\": \"CALL\"\n    },\n    {\n      \"date\": \"2020-12-31\",\n      \"amount\": \"110\",\n      \"type\": \"DISTRIBUTION\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Private Equity — Performance Metrics",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/private-equity/metrics",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"committedCapital\": \"150\",\n  \"calledCapital\": \"110\",\n  \"investedCapital\": \"100\",\n  \"distributedCapital\": \"20\",\n  \"residualValue\": \"100\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Private Equity — J-Curve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/private-equity/j-curve",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashFlows\": [\n    {\n      \"date\": \"2020-01-01\",\n      \"amount\": \"-100\",\n      \"type\": \"CALL\"\n    },\n    {\n      \"date\": \"2020-12-31\",\n      \"amount\": \"110\",\n      \"type\": \"DISTRIBUTION\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Futures — Margin Health",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/futures/margin-health",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"positions\": [\n    {\n      \"id\": \"s50-demo\",\n      \"symbol\": \"S50Z26\",\n      \"side\": \"LONG\",\n      \"qty\": \"8\",\n      \"entryPrice\": \"870\",\n      \"markPrice\": \"886\",\n      \"contractSize\": \"200\",\n      \"multiplier\": \"1\",\n      \"initialMargin\": \"150000\",\n      \"maintenanceMargin\": \"120000\"\n    }\n  ],\n  \"accountBalance\": \"1080000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Futures — Mark-to-Market",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/futures/mark-to-market",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"side\": \"LONG\",\n  \"qty\": \"8\",\n  \"entryPrice\": \"870\",\n  \"markPrice\": \"886\",\n  \"contractSize\": \"200\",\n  \"multiplier\": \"1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Futures — Liquidation Estimate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/advanced-assets/futures/liquidation-price",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"side\": \"LONG\",\n  \"entryPrice\": \"870\",\n  \"initialMarginPerContract\": \"150000\",\n  \"maintenanceMarginPerContract\": \"120000\",\n  \"multiplier\": \"1\",\n  \"qty\": \"8\",\n  \"contractSize\": \"200\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

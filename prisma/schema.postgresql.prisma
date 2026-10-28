@@ -1,0 +1,144 @@
+// Production PostgreSQL Prisma Schema for FIFO Wealth OS
+// Usage in production: npx prisma migrate deploy --schema=prisma/schema.postgresql.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TradeDirection {
+  BUY
+  SELL
+}
+
+enum StoredFileType {
+  CSV
+  PDF
+}
+
+model User {
+  id                       String         @id @default(uuid())
+  email                    String         @unique
+  passwordHash             String
+  name                     String
+  createdAt                DateTime       @default(now())
+  isBetaAllAccess          Boolean        @default(true)
+  earlyBirdClaimedAt       DateTime?
+  earlyBirdDiscountPercent Int?
+  earlyBirdCanceledAt      DateTime?
+  proTrialRequestedAt      DateTime?
+  proTrialDurationDays     Int?
+  proYearRewardQualifiedAt DateTime?
+  portfolios               Portfolio[]
+  uploadedFiles            UploadedFile[]
+  subscription             Subscription?
+  donations                Donation[]
+
+  @@index([email])
+}
+
+model Portfolio {
+  id            String         @id @default(uuid())
+  userId        String
+  name          String
+  baseCurrency  String         @default("THB")
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  dividends     Dividend[]
+  uploadedFiles UploadedFile[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id               String         @id @default(uuid())
+  portfolioId      String
+  date             String
+  symbol           String
+  type             TradeDirection
+  exchange         String         @default("BITKUB")
+  qty              Float
+  price            Float
+  gross            String
+  comm             String
+  vat              String
+  net              String
+  originalCurrency String
+  fxRate           String?
+  netTHB           String?
+  portfolio        Portfolio      @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, date])
+  @@index([portfolioId, symbol])
+}
+
+model Dividend {
+  id               String    @id @default(uuid())
+  portfolioId      String
+  date             String
+  symbol           String
+  qty              Float
+  divPerShare      String
+  gross            String
+  whtRate          Float
+  wht              String
+  net              String
+  originalCurrency String
+  fxRate           String?
+  grossTHB         String?
+  whtTHB           String?
+  netTHB           String?
+  portfolio        Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, date])
+}
+
+model UploadedFile {
+  id          String         @id @default(uuid())
+  userId      String
+  portfolioId String
+  filename    String
+  type        StoredFileType
+  path        String
+  createdAt   DateTime       @default(now())
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolio   Portfolio      @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([portfolioId])
+}
+
+model Subscription {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  tier             String    @default("FREE") // 'FREE' | 'PRO' | 'FAMILY' | 'ADVISOR'
+  status           String    @default("BETA_ALL_ACCESS") // 'ACTIVE' | 'CANCELED' | 'BETA_ALL_ACCESS'
+  stripeCustomerId String?   @unique
+  currentPeriodEnd DateTime?
+  isBetaAllAccess  Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model Donation {
+  id              String   @id @default(uuid())
+  userId          String
+  amountTHB       String
+  currency        String   @default("THB")
+  stripePaymentId String?  @unique
+  status          String   @default("PENDING") // 'PENDING' | 'SUCCEEDED' | 'FAILED'
+  message         String?
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
